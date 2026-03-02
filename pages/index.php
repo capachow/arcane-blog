@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Arcane Blog 26.01.1 MIT
+ * Arcane Blog 26.03.1 MIT
 **/
 
 if(path(1) == 'post') {

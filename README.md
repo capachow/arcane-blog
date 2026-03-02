@@ -13,15 +13,16 @@ A simple flat-file blog that uses Markdown. Perfect for personal sites or those 
 
 ## Support
 
-- Requires Apache & PHP >= 8.2
-- `AllowOverride All` directive is required.
-- [Arcane Framework Repository](https://github.com/MEDIA76/arcane)
-- [Arcane Documentation & Examples](https://github.com/MEDIA76/arcane/blob/master/MANUAL.md)
-- [Collection of Arcane Helpers](https://github.com/MEDIA76/arcane-helpers)
-
-[Creating an issue](https://github.com/MEDIA76/arcane-blog/issues) on GitHub for reporting bugs is always appreciated.
-
-Chat via [Discord channel](https://chat.arcane.dev) for additional support.
+  - Requires PHP >= 8.2.
+  - **Apache users:** Works automatically provided the `AllowOverride All` directive is enabled (Arcane will generate the required `.htaccess` file for you).
+  - **NGINX users:** Requires routing traffic to the front controller. Add this to your `server` block alongside your existing PHP execution directive:
+```nginx
+location / {
+  rewrite ^/(.*)/$ /$1 permanent;
+  try_files $uri $uri/ /index.php?$query_string;
+}
+```
+  - [Creating an issue](https://github.com/capachow/arcane-blog/issues) on GitHub for reporting bugs is always appreciated.
 
 ## License
 
