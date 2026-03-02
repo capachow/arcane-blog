@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Markdown 26.03.1 Arcane Helper
+ * Markdown 26.03.2 Arcane Helper
  * MIT https://helpers.arcane.dev
 **/
 
@@ -156,17 +156,33 @@ return function($content, $replace = []) {
         if(strpos($line, $search) !== false) {
           if($search === '`') {
             $line = preg_replace_callback($regex, function($match) {
-              $match = htmlentities($match[1]);
+              $match[2] = htmlentities($match[2]);
 
-              return str_replace('$2', $match, '$1<code>$2</code>$3');
+              return strtr('$1<code>$2</code>', [
+                '$1' => $match[1],
+                '$2' => $match[2]
+              ]);
+            }, $line);
+          } elseif ($search === '](') {
+            $line = preg_replace_callback($regex, function($match) {
+              $host = parse_url($match[3], PHP_URL_HOST);
+
+              if($host && $_SERVER['HTTP_HOST'] !== $host) {
+                $target = ' target="_blank"';
+              }
+
+              return strtr('$1<a href="$3"' . ($target ?? '') . '>$2</a>', [
+                '$1' => $match[1],
+                '$2' => $match[2],
+                '$3' => $match[3]
+              ]);
             }, $line);
           } else {
             $html = [
-              '*' => "$1<strong>$2</strong>$3",
-              '_' => "$1<em>$2</em>$3",
-              '~' => "$1<strike>$2</strike>$3",
-              '![' => "$1<img src=\"$3\" alt=\"$2\" />$4",
-              '](' => "$1<a href=\"$3\" target=\"_blank\">$2</a>$4"
+              '*' => "$1<strong>$2</strong>",
+              '_' => "$1<em>$2</em>",
+              '~' => "$1<strike>$2</strike>",
+              '![' => "$1<img src=\"$3\" alt=\"$2\" />"
             ];
 
             $line = preg_replace($regex, $html[$search], $line);
