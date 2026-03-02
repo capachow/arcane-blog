@@ -27,7 +27,7 @@ return function($content, $replace = []) {
     foreach(array_reverse($includes, true) as $index => $include) {
       if(is_file($path = path(trim($include, "@\x20"), true))) {
         $include = file_get_contents($path);
-  
+
         if(substr($path, -2) === 'md') {
           $include = array_filter(explode("\n", $include));
         } else {
