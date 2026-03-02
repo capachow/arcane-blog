@@ -1,11 +1,13 @@
 <?php
 
 /**
- * Markdown 20.07.1 Arcane Helper
+ * Markdown 26.03.1 Arcane Helper
  * MIT https://helpers.arcane.dev
 **/
 
 return function($content, $replace = []) {
+  $content = is_null($content) ? '' : $content;
+
   if(is_array($content)) {
     $content = implode("\n", $content);
   } else if(substr(rtrim($content), -2) === 'md') {
@@ -42,9 +44,20 @@ return function($content, $replace = []) {
 
   $content = array_map('rtrim', $content);
   $content = array_values(array_filter($content));
+  $markdown = [];
 
   foreach($content as $index => $line) {
     $next = next($content);
+
+    if(str_ends_with($line, '}')) {
+      if(preg_match('/\Q{\E.*?\Q}\E$/', $line, $found)) {
+          $id = ' id ="' . trim($found[0], '{}') . '"';
+
+          $line = preg_replace('/\Q{\E.*?\Q}\E$/', '', $line);
+      }
+    } else {
+      $id = null;
+    }
 
     foreach(['line', 'next'] as $variable) {
       $start[$variable] = ltrim($$variable)[0] ?? 0;
@@ -57,7 +70,7 @@ return function($content, $replace = []) {
 
       if(!isset($quote)) {
         $quote = 'blockquote';
-        $results[] = "<{$quote}>";
+        $markdown[] = "<{$quote}>";
       }
     }
 
@@ -66,7 +79,7 @@ return function($content, $replace = []) {
 
       if(!isset($code)) {
         $code = 'pre';
-        $results[] = "<{$code}><code>";
+        $markdown[] = "<{$code}><code>";
       } else {
         $format = "\n%s";
       }
@@ -96,8 +109,8 @@ return function($content, $replace = []) {
 
             if(!isset($child)) {
               if($start['line'] !== $parent) {
-                $format = "<{$list}>{$format}";
-                $child = $element;
+              $format = "<{$list}>{$format}";
+              $child = $element;
               }
             }
           }
@@ -128,7 +141,7 @@ return function($content, $replace = []) {
         if($line === '---') {
           $format = '<hr />';
         } else {
-          $format = '<p>%s</p>';
+          $format = '<p' . $id . '>%s</p>';
         }
       }
 
@@ -153,7 +166,7 @@ return function($content, $replace = []) {
               '_' => "$1<em>$2</em>$3",
               '~' => "$1<strike>$2</strike>$3",
               '![' => "$1<img src=\"$3\" alt=\"$2\" />$4",
-              '](' => "$1<a href=\"$3\">$2</a>$4"
+              '](' => "$1<a href=\"$3\" target=\"_blank\">$2</a>$4"
             ];
 
             $line = preg_replace($regex, $html[$search], $line);
@@ -162,11 +175,11 @@ return function($content, $replace = []) {
       }
     }
 
-    $results[] = sprintf($format ?? '%s', $line);
+    $markdown[] = sprintf($format ?? '%s', $line);
 
     if(isset($code)) {
       if(!ctype_space(substr($next, 0, 4))) {
-        $results[] = "</{$code}></code>";
+        $markdown[] = "</{$code}></code>";
 
         unset($code);
       }
@@ -174,14 +187,14 @@ return function($content, $replace = []) {
 
     if(isset($quote)) {
       if($start['next'] !== '>') {
-        $results[] = "</{$quote}>";
+        $markdown[] = "</{$quote}>";
 
         unset($quote);
       }
     }
   }
 
-  return implode($results);
+  return implode($markdown);
 };
 
 ?>
